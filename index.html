@@ -76,13 +76,53 @@
       voice.lang = 'fa-IR';
       speechSynthesis.speak(voice);
     }
-    function sendMessage() {
+    async function sendMessage() {
       const input = document.getElementById('message');
+      const chat = document.getElementById('chat');
+      const btn = document.querySelector('button');
       const text = input.value.trim();
       if (!text) return;
-      document.getElementById('chat').innerText =
-        'محسن جان، پیامت رو دیدم ❤️ برای پاسخ هوشمند باید اتصال هوش مصنوعی هم تنظیم بشه.';
-      input.value = '';
+
+      btn.disabled = true;
+      btn.textContent = 'زارا در حال پاسخ دادن...';
+      chat.textContent = 'در حال اتصال به مغز زارا...';
+
+      try {
+        const res = await fetch('https://zara-ai.mohsenrasti92.workers.dev/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+
+        const raw = await res.text();
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          throw new Error('پاسخ سرور JSON معتبر نیست: ' + raw.slice(0, 150));
+        }
+
+        if (!res.ok) {
+          throw new Error(data.error || data.message || 'خطای HTTP ' + res.status);
+        }
+
+        const answer = typeof data === 'string' ? data :
+          (data.response || data.reply || data.result?.response || data.message);
+
+        if (typeof answer !== 'string' || !answer.trim()) {
+          throw new Error('قالب پاسخ هوش مصنوعی ناشناخته است: ' +
+            JSON.stringify(data).slice(0, 150));
+        }
+
+        chat.textContent = answer.trim();
+        input.value = '';
+      } catch (e) {
+        chat.textContent = 'محسن جان، اتصال به مغز زارا مشکل داشت:\n' +
+          (e.message || 'خطای نامشخص');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'فرستادن پیام';
+      }
     }
   </script>
 </body>
