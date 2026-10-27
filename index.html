@@ -107,10 +107,10 @@
         }
 
         const answer = typeof data === 'string' ? data :
-          (data.response || data.reply || data.result?.response || data.message);
+          (data.reply || data.response || data.result?.response || data.message);
 
         if (typeof answer !== 'string' || !answer.trim()) {
-          throw new Error('قالب پاسخ هوش مصنوعی ناشناخته است: ' +
+          throw new Error('پاسخ زارا خالی یا ناشناخته است: ' +
             JSON.stringify(data).slice(0, 150));
         }
 
